@@ -1,41 +1,40 @@
-
 CREATE TABLE reservas (
     id SERIAL PRIMARY KEY,
-    numero_quarto INT NOT NULL,
-    data_checkin DATE NOT NULL,
-    data_checkout DATE NOT NULL,
-    valor_diaria NUMERIC(10, 2) NOT NULL,
-    valor_total NUMERIC(10, 2)
+    quarto INT NOT NULL,
+    entrada DATE NOT NULL,
+    saida DATE NOT NULL,
+    diaria NUMERIC(10, 2) NOT NULL,
+    total NUMERIC(10, 2)
 );
 
-CREATE OR REPLACE FUNCTION fn_processa_reserva()
+CREATE OR REPLACE FUNCTION processar_reserva()
 RETURNS TRIGGER AS $$
 DECLARE
-    dias_estadia INT;
+    dias INT;
 BEGIN
-    IF NEW.data_checkout <= NEW.data_checkin THEN
-        RAISE EXCEPTION 'A data de check-out (%) precisa ser posterior à data de check-in (%)!', 
-            NEW.data_checkout, NEW.data_checkin;
+    IF NEW.saida <= NEW.entrada THEN
+        RAISE EXCEPTION 'A data de saida precisa ser maior que a entrada!';
     END IF;
 
-    dias_estadia := NEW.data_checkout - NEW.data_checkin;
+    dias := NEW.saida - NEW.entrada;
 
-    NEW.valor_total := dias_estadia * NEW.valor_diaria;
+    NEW.total := dias * NEW.diaria;
 
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_processa_reserva
+CREATE TRIGGER verificar_reserva
 BEFORE INSERT OR UPDATE ON reservas
 FOR EACH ROW
-EXECUTE FUNCTION fn_processa_reserva();
+EXECUTE FUNCTION processar_reserva();
 
 -- Teste que deu errado
-INSERT INTO reservas (numero_quarto, data_checkin, data_checkout, valor_diaria)
+INSERT INTO reservas (quarto, entrada, saida, diaria)
 VALUES (101, '2026-11-10', '2026-11-05', 200.00);
 
 -- Teste que deu certo
-INSERT INTO reservas (numero_quarto, data_checkin, data_checkout, valor_diaria)
+INSERT INTO reservas (quarto, entrada, saida, diaria)
 VALUES (101, '2026-11-01', '2026-11-06', 200.00);
+
 SELECT * FROM reservas;

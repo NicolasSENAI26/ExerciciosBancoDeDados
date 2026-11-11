@@ -6,25 +6,31 @@ CREATE TABLE contas (
 
 CREATE TABLE movimentacoes (
     id SERIAL PRIMARY KEY,
-    conta_id INT REFERENCES contas(id),
+    conta INT REFERENCES contas(id),
     tipo VARCHAR(1) CHECK (tipo IN ('C', 'D')),
     valor NUMERIC(10, 2) NOT NULL,
-    data_movimentacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    data TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE OR REPLACE FUNCTION fn_atualiza_saldo_conta()
+CREATE OR REPLACE FUNCTION atualizar_saldo()
 RETURNS TRIGGER AS $$
 BEGIN
     IF NEW.tipo = 'C' THEN
-        UPDATE contas SET saldo = saldo + NEW.valor WHERE id = NEW.conta_id;
-    ELSIF NEW.tipo = 'D' THEN
-        UPDATE contas SET saldo = saldo - NEW.valor WHERE id = NEW.conta_id;
+        UPDATE contas
+        SET saldo = saldo + NEW.valor
+        WHERE id = NEW.conta;
+
+    ELSE
+        UPDATE contas
+        SET saldo = saldo - NEW.valor
+        WHERE id = NEW.conta;
     END IF;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_atualiza_saldo
+CREATE TRIGGER atualizar_conta
 AFTER INSERT ON movimentacoes
 FOR EACH ROW
-EXECUTE FUNCTION fn_atualiza_saldo_conta();
+EXECUTE FUNCTION atualizar_saldo();
