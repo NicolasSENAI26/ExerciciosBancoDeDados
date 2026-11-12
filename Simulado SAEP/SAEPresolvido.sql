@@ -123,4 +123,12 @@ INSERT INTO tarefas (titulo, descricao, funcionario_id, categoria_id, data_entre
 ('Criar sistema', 'Fazer o sistema da empresa', 2, 2, '2026-11-20'),
 ('Organizar arquivos', 'Separar os documentos', 3, 3, '2026-11-25');
 
---os comandos para testar estava sem tempo então optei por não colocar
+SELECT * FROM funcionarios;
+
+SELECT * FROM tarefas;
+
+SELECT * FROM historico_tarefas;
+
+SELECT * FROM painel_principal;
+
+SELECT * FROM prazos;
